@@ -46,11 +46,14 @@ class User(db.Model):
     )
     followers: Mapped[List[Follower]] = relationship(
         foreign_keys=[Follower.user_to_id],
-        back_populates="follower_user",
-        overlaps="follower_user",
+        back_populates="followed_user",
+        overlaps="followed_user",
         # 5
         viewonly=True
     )
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment", back_populates="author")
+    posts: Mapped[List["Post"]] = relationship("Post", back_populates="user")
 
 
 class Post(db.Model):
@@ -61,6 +64,9 @@ class Post(db.Model):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     update_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now(), onupdate=func.now())
+    user: Mapped["User"] = relationship("User", back_populates="posts")
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment", back_populates="post")
 
 
 class Media(db.Model):
@@ -70,6 +76,7 @@ class Media(db.Model):
     url: Mapped[str] = mapped_column(String, nullable=False)
     post_id: Mapped[int] = mapped_column(
         ForeignKey('posts.post_id'), nullable=False)
+    post: Mapped["Post"] = relationship("Post", back_populates="media")
 
 
 class Comment(db.Model):
@@ -80,6 +87,9 @@ class Comment(db.Model):
         ForeignKey('users.user_id'), nullable=False)
     post_id: Mapped[int] = mapped_column(
         ForeignKey('posts.post_id'), nullable=False)
+    author: Mapped["User"] = relationship("User", back_populates="comments")
+    post: Mapped["Post"] = relationship("Post", back_populates="comments")
+
 
 #  Observations
 
